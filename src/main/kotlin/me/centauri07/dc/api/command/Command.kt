@@ -18,14 +18,13 @@ package me.centauri07.dc.api.command
 
 import me.centauri07.dc.api.command.option.CommandOption
 import me.centauri07.dc.api.executor.Executor
-import net.dv8tion.jda.api.events.Event
 
 /**
  * @author Centauri07
  *
  * This class represents the registered commands to get or weill be executed.
  */
-interface Command<E: Event> {
+interface Command {
 
     /**
      * Used to get the registered command object that has been registered.
@@ -42,7 +41,7 @@ interface Command<E: Event> {
     /**
      * Used to execute the command's behaviour by a pre-defined function when getting called.
      */
-    val executor: Executor<E>
+    val executor: Executor
 
     /**
      * The list of command option of the command.

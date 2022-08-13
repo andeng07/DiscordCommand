@@ -17,14 +17,14 @@
 package me.centauri07.dc.api.executor
 
 import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.events.Event
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 
 /**
  * @author Centauri07
  *
  * This class provides method to be called when a command has been invoked.
  */
-interface Executor<E: Event> {
+interface Executor {
 
     /**
      * The command's behaviour.
@@ -34,6 +34,6 @@ interface Executor<E: Event> {
      * @param arguments the arguments provided by the executor
      * @param event     the event that was triggered when invoking the command
      */
-    fun onCommand(executor: Member, arguments: Array<String>, event: Event)
+    fun onCommand(executor: Member, arguments: Array<String>, event: SlashCommandInteractionEvent)
 
 }
