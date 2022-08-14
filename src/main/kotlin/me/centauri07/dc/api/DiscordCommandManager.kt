@@ -21,10 +21,14 @@ import me.centauri07.dc.api.command.Command
 /**
  * @author Centauri07
  */
-interface DiscordCommand {
+interface DiscordCommandManager {
 
-    val commandCache: MutableMap<String, Command>
-
-    fun <T: Command> getCommand(name: String): T
+    /**
+     * This function is used to get the registered command via it's identifier from the command cache.
+     *
+     * @param name the name of the command
+     * @return the registered command with the corresponding name.
+     */
+    fun getCommand(name: String): Command
 
 }
