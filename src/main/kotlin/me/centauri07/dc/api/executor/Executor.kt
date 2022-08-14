@@ -17,7 +17,7 @@
 package me.centauri07.dc.api.executor
 
 import net.dv8tion.jda.api.entities.Member
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
+import net.dv8tion.jda.api.events.Event
 
 /**
  * @author Centauri07
@@ -34,6 +34,6 @@ interface Executor {
      * @param arguments the arguments provided by the executor
      * @param event     the event that was triggered when invoking the command
      */
-    fun onCommand(executor: Member, arguments: Array<String>, event: SlashCommandInteractionEvent)
+    fun onCommand(executor: Member, arguments: Array<String>, event: Event)
 
 }
