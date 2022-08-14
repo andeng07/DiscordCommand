@@ -18,6 +18,7 @@ package me.centauri07.dc.api.command
 
 import me.centauri07.dc.api.command.option.CommandOption
 import me.centauri07.dc.api.executor.Executor
+import net.dv8tion.jda.api.Permission
 
 /**
  * @author Centauri07
@@ -45,15 +46,26 @@ interface Command {
     val executor: Executor
 
     /**
-     * The list of command option of the command.
+     * List of command option of the command.
      */
-    val commandOptions: MutableList<CommandOption>
+    val commandOptions: List<CommandOption>
 
     /**
-     * The command's sub commands.
-     * String -> Command, where the String represents the subcommand name
-     * and the command is the representation of the command object
+     * List of the permission of the command.
      */
-    val subCommands: MutableMap<String, Command>
+    val permissions: List<Permission>
+
+    /**
+     * List of sub command of the command.
+     * String -> Command, where the String represents the subcommand name
+     * and the command is the representation of the command object.
+     */
+    val subCommands: Map<String, Command>
+
+    /**
+     * Event class of the command.
+     * This determines whether the command is SlashCommand or other type.
+     */
+    val type: Class<*>
 
 }
