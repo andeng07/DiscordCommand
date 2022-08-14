@@ -16,6 +16,7 @@
 
 package me.centauri07.dc.api.command.option
 
+import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
 /**
@@ -27,5 +28,6 @@ data class CommandOption(
     val type: OptionType,
     val name: String,
     val description: String,
-    val required: String
+    val required: Boolean,
+    val choices: List<Command.Choice>? = null
 )
