@@ -39,7 +39,8 @@ interface Command {
     val description: String
 
     /**
-     * Used to execute the command's behaviour by a pre-defined function when getting called.
+     * Used to execute the command's behaviour by a pre-defined function
+     * when getting called.
      */
     val executor: Executor
 
@@ -47,5 +48,12 @@ interface Command {
      * The list of command option of the command.
      */
     val commandOptions: MutableList<CommandOption>
+
+    /**
+     * The command's sub commands.
+     * String -> Command, where the String represents the subcommand name
+     * and the command is the representation of the command object
+     */
+    val subCommands: MutableMap<String, Command>
 
 }
