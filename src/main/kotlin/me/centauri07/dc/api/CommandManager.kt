@@ -31,4 +31,11 @@ interface DiscordCommandManager {
      */
     fun getCommand(name: String): Command
 
+    /**
+     * Gets the list of registered commands
+     *
+     * @return the list of registered commands
+     */
+    fun getCommands(): List<Command>
+
 }
