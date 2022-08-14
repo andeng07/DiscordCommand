@@ -21,15 +21,23 @@ import me.centauri07.dc.api.command.Command
 /**
  * @author Centauri07
  */
-interface DiscordCommandManager {
+interface CommandManager {
 
     /**
      * This function is used to get the registered command via it's identifier from the command cache.
      *
      * @param name the name of the command
+     *
      * @return the registered command with the corresponding name.
      */
-    fun getCommand(name: String): Command
+    fun getCommand(name: String): Command?
+
+    /**
+     * register a command to the command cache.
+     *
+     * @param command the command to be registered
+     */
+    fun registerCommand(command: Command)
 
     /**
      * Gets the list of registered commands
