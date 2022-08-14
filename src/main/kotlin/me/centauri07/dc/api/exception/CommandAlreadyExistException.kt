@@ -18,5 +18,8 @@ package me.centauri07.dc.api.exception
 
 /**
  * @author Centauri07
+ *
+ * This exception is triggered when the command being registered
+ * in the command map is already registered
  */
 class CommandAlreadyExistException(message: String): Exception(message)
