@@ -17,11 +17,18 @@
 package me.centauri07.dc.api
 
 import me.centauri07.dc.api.command.Command
+import net.dv8tion.jda.api.JDA
+
 /**
  * @author Centauri07
  */
-interface DiscordCommandAPI {
+interface CommandAPI {
 
+    fun initialize(jda: JDA, prefix: String)
+
+    /**
+     * see { @link CommandManager#registerCommand(command) }
+     */
     fun registerCommand(command: Command)
 
 }
