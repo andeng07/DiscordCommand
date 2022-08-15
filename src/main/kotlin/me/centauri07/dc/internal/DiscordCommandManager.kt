@@ -112,11 +112,11 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
 
         if (currentCommand.permissions.isNotEmpty()) {
             // check if the member has at least one of the required permissions to execute the command
-            if (!member.permissions.groupingBy { command.permissions }.eachCount().any { it.value > 1 }) return
+            if (!member.permissions.groupingBy { currentCommand.permissions }.eachCount().any { it.value > 1 }) return
         }
 
         // execute command's behaviour
-        val response = currentCommand.executor!!.onCommand(member, Argument.from(command.commandOptions, messageIndices.drop(messageIndex), event.guild), event)
+        val response = currentCommand.executor!!.onCommand(member, Argument.from(currentCommand.commandOptions, messageIndices.drop(messageIndex), event.guild), event)
 
         when (response.type) {
             STRING -> event.message.reply(response.stringResponse!!).mentionRepliedUser(false).queue()
