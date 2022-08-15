@@ -103,18 +103,38 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
                     }
                     INTEGER -> current[0].toLong()
                     BOOLEAN -> current[0].toBoolean()
-                    USER -> TODO()
-                    CHANNEL -> TODO()
-                    ROLE -> TODO()
-                    MENTIONABLE -> TODO()
+                    USER -> {
+                        val userId: Long = try {
+                            if (current[0].startsWith("<@") && current[0].endsWith(">")) {
+                                current[0].substring(1, current[0].length - 2).toLong()
+                            } else current[0].toLong()
+                        } catch(e: NumberFormatException) {
+                            throw CommandArgumentException("Invalid user argument format")
+                        }
+
+                        guild.getMemberById(userId)?.user ?: throw CommandArgumentException("Cannot find user")
+                    }
+                    CHANNEL -> throw IllegalArgumentException("Unsupported type")
+                    ROLE -> {
+                        if (current[0] == "@everyone") guild.publicRole
+
+                        val roleId: Long = try {
+                            if (current[0].startsWith("<@") && current[0].endsWith(">")) {
+                                current[0].substring(1, current[0].length - 2).toLong()
+                            } else current[0].toLong()
+                        } catch(e: NumberFormatException) {
+                            throw CommandArgumentException("Invalid role argument format")
+                        }
+
+                        guild.getRoleById(roleId) ?: throw CommandArgumentException("Cannot find role")
+                    }
                     NUMBER -> current[0].toDouble()
-                    ATTACHMENT -> throw IllegalArgumentException("Unsupported type")
+                    MENTIONABLE, ATTACHMENT -> throw IllegalArgumentException("Unsupported type")
                 }
 
                 current = current.drop(toDrop)
 
                 convertedArguments.add(Argument(commandOption.type, commandOption.name, value))
-
             }
 
             return convertedArguments
