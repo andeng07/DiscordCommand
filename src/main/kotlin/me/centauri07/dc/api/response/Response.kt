@@ -24,11 +24,11 @@ import net.dv8tion.jda.api.interactions.components.Modal
  * @author Centauri07
  */
 class Response private constructor(
-    private val type: Type,
-    private val stringResponse: String? = null,
-    private val messageResponse: Message? = null,
-    private val embedsResponse: List<MessageEmbed>? = null,
-    private val modalResponse: Modal? = null,
+    val type: Type,
+    val stringResponse: String? = null,
+    val messageResponse: Message? = null,
+    val embedsResponse: List<MessageEmbed>? = null,
+    val modalResponse: Modal? = null,
 ) {
 
     enum class Type {
