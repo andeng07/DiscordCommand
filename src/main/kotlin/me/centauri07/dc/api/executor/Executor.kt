@@ -16,6 +16,8 @@
 
 package me.centauri07.dc.api.executor
 
+import me.centauri07.dc.api.argument.Argument
+import me.centauri07.dc.api.response.Response
 import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.events.Event
 
@@ -34,6 +36,6 @@ interface Executor {
      * @param arguments the arguments provided by the executor
      * @param event     the event that was triggered when invoking the command
      */
-    fun onCommand(executor: Member, arguments: Array<String>, event: Event)
+    fun onCommand(executor: Member, arguments: List<Argument>, event: Event): Response
 
 }
