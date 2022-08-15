@@ -193,9 +193,6 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
 
             return slashCommandData
         }
-
-        val subCommandGroupsData = mutableListOf<SubcommandGroupData>()
-        val subCommandsData = mutableListOf<SubcommandData>()
         
         for (subCommand in command.subCommands.values) {
 
@@ -220,12 +217,12 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
 
                 } }
 
-                subCommandGroupsData.add(subCommandGroupData)
+                slashCommandData.addSubcommandGroups(subCommandGroupData)
             } else {
 
-                val subCommandData = SubcommandData(command.name, command.description)
+                val subCommandData = SubcommandData(subCommand.name, subCommand.description)
 
-                command.commandOptions.forEach {
+                subCommand.commandOptions.forEach {
                     val option = OptionData(
                         it.type, it.name, it.description, it.required
                     )
@@ -237,14 +234,9 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
 
                 slashCommandData.addSubcommands(subCommandData)
 
-                subCommandsData.add(subCommandData)
-
             }
 
         }
-
-        slashCommandData.addSubcommandGroups(subCommandGroupsData)
-        slashCommandData.addSubcommands(subCommandsData)
 
         return slashCommandData
         
