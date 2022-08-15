@@ -47,9 +47,9 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
         fun from(options: List<OptionMapping>): List<Argument> {
 
             return options.map { Argument(it.type, it.name, when (it.type) {
-                UNKNOWN -> IllegalArgumentException("Unknown type")
-                SUB_COMMAND -> IllegalArgumentException("Argument cannot be a sub command")
-                SUB_COMMAND_GROUP -> IllegalArgumentException("Argument cannot be a sub command group")
+                UNKNOWN -> throw IllegalArgumentException("Unknown type")
+                SUB_COMMAND -> throw IllegalArgumentException("Argument cannot be a sub command")
+                SUB_COMMAND_GROUP -> throw IllegalArgumentException("Argument cannot be a sub command group")
                 STRING -> it.asString
                 INTEGER -> it.asLong
                 BOOLEAN -> it.asBoolean
