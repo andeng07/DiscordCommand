@@ -76,7 +76,9 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
 
                 var toDrop = 1
 
-                val value: Any = when (commandOption.type) {
+                val value: Any
+
+                when (commandOption.type) {
                     UNKNOWN -> throw IllegalArgumentException("Unknown type")
                     SUB_COMMAND -> throw IllegalArgumentException("Argument cannot be a sub command")
                     SUB_COMMAND_GROUP -> throw IllegalArgumentException("Argument cannot be a sub command group")
@@ -99,36 +101,39 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
 
                         val result = current.subList(0, toDrop).joinToString(" ")
 
-                        result.trimSubstring(1, result.length - 1)
+                        value = result.trimSubstring(1, result.length - 1)
                     }
-                    INTEGER -> current[0].toLong()
-                    BOOLEAN -> current[0].toBoolean()
+                    INTEGER -> value = current[0].toLong()
+                    BOOLEAN -> value = current[0].toBoolean()
                     USER -> {
                         val userId: Long = try {
                             if (current[0].startsWith("<@") && current[0].endsWith(">")) {
-                                current[0].substring(1, current[0].length - 2).toLong()
+                                current[0].substring(2, current[0].length - 1).toLong()
                             } else current[0].toLong()
                         } catch(e: NumberFormatException) {
                             throw CommandArgumentException("Invalid user argument format")
                         }
 
-                        guild.getMemberById(userId)?.user ?: throw CommandArgumentException("Cannot find user")
+                        value = guild.getMemberById(userId)?.user ?: throw CommandArgumentException("Cannot find user")
                     }
                     CHANNEL -> throw IllegalArgumentException("Unsupported type")
                     ROLE -> {
-                        if (current[0] == "@everyone") guild.publicRole
+                        value = if (current[0] == "@everyone") guild.publicRole
+                        else {
+                            val roleId: Long = try {
+                                if (current[0].startsWith("<@&") && current[0].endsWith(">")) {
+                                    current[0].substring(3, current[0].length - 1).toLong()
+                                } else current[0].toLong()
+                            } catch (e: NumberFormatException) {
+                                e.printStackTrace()
 
-                        val roleId: Long = try {
-                            if (current[0].startsWith("<@") && current[0].endsWith(">")) {
-                                current[0].substring(1, current[0].length - 2).toLong()
-                            } else current[0].toLong()
-                        } catch(e: NumberFormatException) {
-                            throw CommandArgumentException("Invalid role argument format")
+                                throw CommandArgumentException("Invalid role argument format")
+                            }
+
+                            guild.getRoleById(roleId) ?: throw CommandArgumentException("Cannot find role")
                         }
-
-                        guild.getRoleById(roleId) ?: throw CommandArgumentException("Cannot find role")
                     }
-                    NUMBER -> current[0].toDouble()
+                    NUMBER -> value = current[0].toDouble()
                     MENTIONABLE, ATTACHMENT -> throw IllegalArgumentException("Unsupported type")
                 }
 
