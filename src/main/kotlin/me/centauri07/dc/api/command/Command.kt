@@ -43,7 +43,7 @@ interface Command {
      * Used to execute the command's behaviour by a pre-defined function
      * when getting called.
      */
-    val executor: Executor
+    val executor: Executor?
 
     /**
      * List of command option of the command.
