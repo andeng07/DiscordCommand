@@ -36,6 +36,8 @@ interface CommandManager {
      * register a command to the command cache.
      *
      * @param command the command to be registered
+     *
+     * @throws CommandAlreadyExistException if the command with the corresponding name is already registered in the command cache
      */
     fun registerCommand(command: Command)
 
