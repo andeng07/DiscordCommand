@@ -92,7 +92,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
 
         var messageIndex = 1
 
-        while(currentCommand != null && command.subCommands.isNotEmpty()) {
+        while(currentCommand != null && currentCommand.subCommands.isNotEmpty()) {
 
             try {
                 currentCommand = currentCommand.subCommands[messageIndices[messageIndex]]
