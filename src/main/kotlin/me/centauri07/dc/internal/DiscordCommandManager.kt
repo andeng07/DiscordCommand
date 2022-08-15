@@ -46,9 +46,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
     override fun registerCommand(command: Command) {
 
         if (commandMap.containsKey(command.name)) throw CommandAlreadyExistException("command with name ${command.name} has already been registered.")
-
-        if (command.subCommands.isNotEmpty() && command.commandOptions.isNotEmpty()) throw IllegalStateException("Command cannot have sub command and command options at the same time!")
-
+        
         when (command.type) {
 
             MessageReceivedEvent::class.java -> {
