@@ -16,7 +16,9 @@
 
 package me.centauri07.dc.api.exception
 
+import me.centauri07.dc.api.command.option.CommandOption
+
 /**
  * @author Centauri07
  */
-class CommandArgumentException(message: String): Exception(message)
+class CommandArgumentException(val option: CommandOption, message: String, val source: String? = null): Exception(message)

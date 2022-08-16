@@ -70,9 +70,9 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
             var current = listOf(*arguments.toTypedArray())
 
             for (i in options.indices) {
-                if (current.isEmpty()) throw CommandArgumentException("There are no enough argument(s) for ${options.map(CommandOption::name).joinToString(", ")}")
-
                 val commandOption = options[i]
+
+                if (current.isEmpty()) throw CommandArgumentException(commandOption, "There are no enough argument(s) for ${options.map(CommandOption::name).joinToString(", ")}")
 
                 var toDrop = 1
 
@@ -83,18 +83,14 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
                     SUB_COMMAND -> throw IllegalArgumentException("Argument cannot be a sub command")
                     SUB_COMMAND_GROUP -> throw IllegalArgumentException("Argument cannot be a sub command group")
                     STRING -> {
-                        if (!current[0].startsWith("\"")) throw CommandArgumentException("Cannot find start of string argument")
+                        if (!current[0].startsWith("\"")) throw CommandArgumentException(commandOption, "\" expected at the first of the string argument")
 
                         var currentIndex = 0
 
-                        try {
-                            while (!current[currentIndex].endsWith("\"")) {
-                                currentIndex += 1
+                        while (!current[currentIndex].endsWith("\"")) {
+                            currentIndex += 1
 
-                                if (current.size > currentIndex) throw CommandArgumentException("Cannot find end of string argument")
-                            }
-                        } catch (e: IndexOutOfBoundsException) {
-                            throw CommandArgumentException("Cannot find end of string argument")
+                            if (current.size <= currentIndex - 1) throw CommandArgumentException(commandOption, "Cannot find end of string argument")
                         }
 
                         toDrop = currentIndex + 1
@@ -106,31 +102,35 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
                     INTEGER -> value = current[0].toLong()
                     BOOLEAN -> value = current[0].toBoolean()
                     USER -> {
+                        val toParse = current[0]
+
                         val userId: Long = try {
-                            if (current[0].startsWith("<@") && current[0].endsWith(">")) {
-                                current[0].substring(2, current[0].length - 1).toLong()
-                            } else current[0].toLong()
+                            if (toParse.startsWith("<@") && toParse.endsWith(">")) {
+                                toParse.substring(2, toParse.length - 1).toLong()
+                            } else toParse.toLong()
                         } catch(e: NumberFormatException) {
-                            throw CommandArgumentException("Invalid user argument format")
+                            throw CommandArgumentException(commandOption, "Invalid user argument format", toParse)
                         }
 
-                        value = guild.getMemberById(userId)?.user ?: throw CommandArgumentException("Cannot find user")
+                        value = guild.getMemberById(userId)?.user ?: throw CommandArgumentException(commandOption, "Cannot find user", toParse)
                     }
                     CHANNEL -> throw IllegalArgumentException("Unsupported type")
                     ROLE -> {
-                        value = if (current[0] == "@everyone") guild.publicRole
+                        val toParse = current[0]
+
+                        value = if (toParse == "@everyone") guild.publicRole
                         else {
                             val roleId: Long = try {
-                                if (current[0].startsWith("<@&") && current[0].endsWith(">")) {
-                                    current[0].substring(3, current[0].length - 1).toLong()
-                                } else current[0].toLong()
+                                if (toParse.startsWith("<@&") && toParse.endsWith(">")) {
+                                    toParse.substring(3, toParse.length - 1).toLong()
+                                } else toParse.toLong()
                             } catch (e: NumberFormatException) {
                                 e.printStackTrace()
 
-                                throw CommandArgumentException("Invalid role argument format")
+                                throw CommandArgumentException(commandOption, "Invalid role argument format")
                             }
 
-                            guild.getRoleById(roleId) ?: throw CommandArgumentException("Cannot find role")
+                            guild.getRoleById(roleId) ?: throw CommandArgumentException(commandOption, "Cannot find role", toParse)
                         }
                     }
                     NUMBER -> value = current[0].toDouble()
