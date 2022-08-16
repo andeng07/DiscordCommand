@@ -29,6 +29,7 @@ class Response private constructor(
     val messageResponse: Message? = null,
     val embedsResponse: List<MessageEmbed>? = null,
     val modalResponse: Modal? = null,
+    var ephemeral: Boolean = false
 ) {
 
     enum class Type {
@@ -44,6 +45,12 @@ class Response private constructor(
         fun of(modal: Modal): Response = Response(Type.MODAL, modalResponse = modal)
         fun of(): Response = Response(Type.DEFFER)
 
+    }
+
+    fun setEphemeral(): Response {
+        ephemeral = true
+
+        return this
     }
 
 }

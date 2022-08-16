@@ -121,6 +121,8 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
         // execute command's behaviour
         val response = currentCommand.executor!!.onCommand(member, Argument.from(currentCommand.commandOptions, messageIndices.drop(messageIndex), event.guild), event)
 
+        if (response.ephemeral) throw UnsupportedOperationException("Cannot send an ephemeral message")
+
         when (response.type) {
             STRING -> event.message.reply(response.stringResponse!!).mentionRepliedUser(false).queue()
             MESSAGE -> event.message.reply(response.messageResponse!!).mentionRepliedUser(false).queue()
@@ -165,9 +167,9 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
         val response = currentCommand.executor!!.onCommand(member, Argument.from(event.options), event)
 
         when (response.type) {
-            STRING -> event.reply(response.stringResponse!!).queue()
-            MESSAGE -> event.reply(response.messageResponse!!).queue()
-            EMBEDS -> event.replyEmbeds(response.embedsResponse!!).queue()
+            STRING -> event.reply(response.stringResponse!!).setEphemeral(response.ephemeral).queue()
+            MESSAGE -> event.reply(response.messageResponse!!).setEphemeral(response.ephemeral).queue()
+            EMBEDS -> event.replyEmbeds(response.embedsResponse!!).setEphemeral(response.ephemeral).queue()
             MODAL -> event.replyModal(response.modalResponse!!).queue()
             DEFFER -> event.deferReply().queue()
         }
