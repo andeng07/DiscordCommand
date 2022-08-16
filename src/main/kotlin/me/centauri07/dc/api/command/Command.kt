@@ -28,6 +28,19 @@ import net.dv8tion.jda.api.Permission
 interface Command {
 
     /**
+     * The parent of this command. If the parent is not null, it means
+     * that this is a sub command of a command, otherwise, this is the
+     * parent command.
+     */
+    var parent: Command?
+
+    /**
+     * How deep this is from parent command. Value is zero if this is a
+     * parent command.
+     */
+    val depth: Int
+
+    /**
      * Used to get the registered command object that has been registered.
      * Name must be unique since this is the identifier to get the registered command object.
      * Format should be in lowercase.
