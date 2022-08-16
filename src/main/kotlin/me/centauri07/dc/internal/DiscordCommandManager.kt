@@ -88,10 +88,12 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
         // check if the command's type is corresponding to the event
         if (command.type != event::class.java) return
 
+        // the command to be executed
         var currentCommand: Command? = command
 
         var messageIndex = 1
 
+        // getting the command to be executed
         while(currentCommand != null && currentCommand.subCommands.isNotEmpty()) {
 
             try {
@@ -104,6 +106,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
 
         }
 
+        // send command usage if the command is null or the command's executor is null
         if (currentCommand == null || (currentCommand.executor == null)) {
 
             TODO()
