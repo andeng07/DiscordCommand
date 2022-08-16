@@ -20,13 +20,17 @@ import me.centauri07.dc.api.CommandManager
 import me.centauri07.dc.api.argument.Argument
 import me.centauri07.dc.api.command.Command
 import me.centauri07.dc.api.exception.CommandAlreadyExistException
+import me.centauri07.dc.api.exception.CommandArgumentException
 import me.centauri07.dc.api.response.Response.Type.*
+import me.centauri07.dc.util.getUsage
+import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.build.*
+import java.awt.Color
 
 /**
  * @author Centauri07
@@ -89,33 +93,66 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
         if (command.type != event::class.java) return
 
         // the command to be executed
-        var currentCommand: Command? = command
+        var currentCommand: Command = command
 
-        var messageIndex = 1
+        var messageIndex = 0
 
         // getting the command to be executed
-        while(currentCommand != null && currentCommand.subCommands.isNotEmpty()) {
+        while(currentCommand.subCommands.isNotEmpty()) {
+
+            messageIndex += 1
 
             try {
-                currentCommand = currentCommand.subCommands[messageIndices[messageIndex]]
+                currentCommand = currentCommand.subCommands[messageIndices[messageIndex]] ?: run {
+                    event.message.replyEmbeds(
+                        EmbedBuilder()
+                            .setColor(Color.RED)
+                            .setDescription("Wrong command usage")
+                            .addField("Correct Usage", "```${getUsage(currentCommand, StringBuilder(), 0)}```", false)
+                            .build()
+                    ).queue()
+
+                    return
+                }
             } catch (e: IndexOutOfBoundsException) {
                 break
             }
 
-            messageIndex += 1
-
         }
 
         // send command usage if the command is null or the command's executor is null
-        if (currentCommand == null || (currentCommand.executor == null)) {
+        if (currentCommand.executor == null) {
 
-            TODO()
+            event.message.replyEmbeds(
+                EmbedBuilder()
+                    .setColor(Color.RED)
+                    .setDescription("Wrong command usage")
+                    .addField("Correct Usage", "```${getUsage(currentCommand, StringBuilder(), 0)}```", false)
+                    .build()
+            ).queue()
+
+            return
 
         }
 
         if (currentCommand.permissions.isNotEmpty()) {
             // check if the member has at least one of the required permissions to execute the command
             if (!member.permissions.groupingBy { currentCommand.permissions }.eachCount().any { it.value > 1 }) return
+        }
+
+        val arguments = try {
+            Argument.from(currentCommand.commandOptions, messageIndices.drop(messageIndex), event.guild)
+        } catch (e: CommandArgumentException) {
+            event.message.replyEmbeds(
+                EmbedBuilder()
+                    .setColor(Color.RED)
+                    .setDescription("There has been an error while parsing arguments")
+                    .addField("Argument", e.source ?: "none", false)
+                    .addField("Error", e.message!!, false)
+                    .build()
+            ).mentionRepliedUser(false).queue()
+
+            return
         }
 
         // execute command's behaviour
@@ -153,11 +190,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
 
         }
 
-        if (currentCommand == null || (currentCommand.executor == null)) {
-
-            TODO()
-
-        }
+        if (currentCommand == null || (currentCommand.executor == null)) return
 
         if (currentCommand.permissions.isNotEmpty()) {
             // check if the member has at least one of the required permissions to execute the command
