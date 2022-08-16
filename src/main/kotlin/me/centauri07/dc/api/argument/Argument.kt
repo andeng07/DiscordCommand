@@ -72,7 +72,7 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
             for (i in options.indices) {
                 val commandOption = options[i]
 
-                if (current.isEmpty()) throw CommandArgumentException(commandOption, "There are no enough argument(s) for ${options.map(CommandOption::name).joinToString(", ")}")
+                if (current.isEmpty()) throw CommandArgumentException(commandOption, "There are no enough argument(s) for ${options.drop(i).map(CommandOption::name).joinToString(", ") { "`${it}`" } }")
 
                 var toDrop = 1
 
@@ -83,14 +83,14 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
                     SUB_COMMAND -> throw IllegalArgumentException("Argument cannot be a sub command")
                     SUB_COMMAND_GROUP -> throw IllegalArgumentException("Argument cannot be a sub command group")
                     STRING -> {
-                        if (!current[0].startsWith("\"")) throw CommandArgumentException(commandOption, "\" expected at the first of the string argument")
+                        if (!current[0].startsWith("\"")) throw CommandArgumentException(commandOption, "\" expected at the start of the string argument", current.joinToString(" "))
 
                         var currentIndex = 0
 
                         while (!current[currentIndex].endsWith("\"")) {
                             currentIndex += 1
 
-                            if (current.size <= currentIndex - 1) throw CommandArgumentException(commandOption, "Cannot find end of string argument")
+                            if (current.size <= currentIndex - 1) throw CommandArgumentException(commandOption, "\" expected at the end of the string argument", current.joinToString(" "))
                         }
 
                         toDrop = currentIndex + 1
@@ -114,7 +114,6 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
 
                         value = guild.getMemberById(userId)?.user ?: throw CommandArgumentException(commandOption, "Cannot find user", toParse)
                     }
-                    CHANNEL -> throw IllegalArgumentException("Unsupported type")
                     ROLE -> {
                         val toParse = current[0]
 
@@ -125,16 +124,14 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
                                     toParse.substring(3, toParse.length - 1).toLong()
                                 } else toParse.toLong()
                             } catch (e: NumberFormatException) {
-                                e.printStackTrace()
-
-                                throw CommandArgumentException(commandOption, "Invalid role argument format")
+                                throw CommandArgumentException(commandOption, "Invalid role argument format", toParse)
                             }
 
                             guild.getRoleById(roleId) ?: throw CommandArgumentException(commandOption, "Cannot find role", toParse)
                         }
                     }
                     NUMBER -> value = current[0].toDouble()
-                    MENTIONABLE, ATTACHMENT -> throw IllegalArgumentException("Unsupported type")
+                    CHANNEL, MENTIONABLE, ATTACHMENT -> throw IllegalArgumentException("Unsupported type")
                 }
 
                 current = current.drop(toDrop)
