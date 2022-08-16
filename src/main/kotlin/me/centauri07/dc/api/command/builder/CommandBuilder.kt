@@ -32,6 +32,7 @@ class CommandBuilder(
     private val type: Class<*>
 ) {
 
+    private var parent: Command? = null
     private var executor: Executor? = null
     private var commandOptions: MutableList<CommandOption>? = null
     private var permissions: MutableList<Permission>? = null
@@ -53,7 +54,7 @@ class CommandBuilder(
     fun addCommandOption(vararg commandOptions: CommandOption): CommandBuilder {
         if (commandOptions.isEmpty()) throw IllegalArgumentException("cannot add an empty array")
 
-        if (subCommands?.isNotEmpty() == true) throw IllegalStateException("Command cannot have options and sub command at the same time!")
+        if (subCommands?.isNotEmpty() == true) throw IllegalStateException("Command cannot have options and sub command at the same time.")
 
         if (this.commandOptions == null) this.commandOptions = mutableListOf()
 
@@ -64,7 +65,7 @@ class CommandBuilder(
 
 
     fun addPermissions(vararg permissions: Permission): CommandBuilder {
-        if (permissions.isEmpty()) throw IllegalArgumentException("cannot add an empty array")
+        if (permissions.isEmpty()) throw IllegalArgumentException("cannot add an empty array.")
 
         if (this.permissions == null) commandOptions = mutableListOf()
 
@@ -77,12 +78,12 @@ class CommandBuilder(
     fun addSubCommands(vararg subCommands: Command): CommandBuilder {
         if (subCommands.isEmpty()) throw IllegalArgumentException("cannot add an empty array")
 
-        if (commandOptions?.isNotEmpty() == true) throw IllegalStateException("Command cannot have options and sub command at the same time!")
+        if (commandOptions?.isNotEmpty() == true) throw IllegalStateException("Command cannot have options and sub command at the same time.")
 
         if (this.subCommands == null) this.subCommands = mutableMapOf()
 
         subCommands.forEach {
-            if (it.type != type) throw IllegalArgumentException("subcommand's type must be the same type with its parent command")
+            if (it.type != type) throw IllegalArgumentException("subcommand's type must be the same type with its parent command.")
 
             this.subCommands!![it.name] = it
         }
@@ -91,12 +92,15 @@ class CommandBuilder(
     }
 
     fun build(): Command = object: Command {
+        override var parent: Command? = this@CommandBuilder.parent
+        override val depth: Int = this@CommandBuilder.parent?.depth?.plus(1) ?: 0
         override val name: String = this@CommandBuilder.name
         override val description: String = this@CommandBuilder.description
         override val executor: Executor? = this@CommandBuilder.executor
         override val commandOptions: List<CommandOption> = this@CommandBuilder.commandOptions ?: emptyList()
         override val permissions: List<Permission> = this@CommandBuilder.permissions ?: emptyList()
-        override val subCommands: Map<String, Command> = this@CommandBuilder.subCommands ?: emptyMap()
+        override val subCommands: Map<String, Command> = this@CommandBuilder.subCommands
+            ?.onEach { subCommand -> subCommand.value.parent = this } ?: emptyMap()
         override val type: Class<*> = this@CommandBuilder.type
     }
 
