@@ -110,7 +110,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
                             .setDescription("Wrong command usage")
                             .addField("Correct Usage", "```${getUsage(currentCommand, StringBuilder(), 0)}```", false)
                             .build()
-                    ).queue()
+                    ).mentionRepliedUser(false).queue()
 
                     return
                 }
@@ -140,8 +140,9 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
             if (!member.permissions.groupingBy { currentCommand.permissions }.eachCount().any { it.value > 1 }) return
         }
 
+        // parse the argument and reply with error if encountered an exception
         val arguments = try {
-            Argument.from(currentCommand.commandOptions, messageIndices.drop(messageIndex), event.guild)
+            Argument.from(currentCommand.commandOptions, messageIndices.drop(messageIndex + 1), event.guild)
         } catch (e: CommandArgumentException) {
             event.message.replyEmbeds(
                 EmbedBuilder()
@@ -155,11 +156,12 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
             return
         }
 
-        // execute command's behaviour
-        val response = currentCommand.executor!!.onCommand(member, Argument.from(currentCommand.commandOptions, messageIndices.drop(messageIndex), event.guild), event)
+        // execute command's executor and get the response
+        val response = currentCommand.executor!!.onCommand(member, arguments, event)
 
         if (response.ephemeral) throw UnsupportedOperationException("Cannot send an ephemeral message")
 
+        // reply using the response
         when (response.type) {
             STRING -> event.message.reply(response.stringResponse!!).mentionRepliedUser(false).queue()
             MESSAGE -> event.message.reply(response.messageResponse!!).mentionRepliedUser(false).queue()
@@ -182,6 +184,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
 
         var currentCommand: Command? = command
 
+        // replace the currentCommand with the sub command provided with the user
         if (event.subcommandGroup != null && event.subcommandName != null) {
 
             if (event.subcommandGroup != null) currentCommand = currentCommand?.subCommands?.get(event.subcommandGroup)
@@ -197,8 +200,10 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
             if (!member.permissions.groupingBy { command.permissions }.eachCount().any { it.value > 1 }) return
         }
 
+        // execute the command's executor and get the response
         val response = currentCommand.executor!!.onCommand(member, Argument.from(event.options), event)
 
+        // reply using the response
         when (response.type) {
             STRING -> event.reply(response.stringResponse!!).setEphemeral(response.ephemeral).queue()
             MESSAGE -> event.reply(response.messageResponse!!).setEphemeral(response.ephemeral).queue()
