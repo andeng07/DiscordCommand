@@ -185,7 +185,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
         var currentCommand: Command? = command
 
         // replace the currentCommand with the sub command provided with the user
-        if (event.subcommandGroup != null && event.subcommandName != null) {
+        if (event.subcommandName != null) {
 
             if (event.subcommandGroup != null) currentCommand = currentCommand?.subCommands?.get(event.subcommandGroup)
 
@@ -193,7 +193,8 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
 
         }
 
-        if (currentCommand == null || (currentCommand.executor == null)) return
+        // check if the command or the command's executor is not null
+        if (currentCommand?.executor == null) return
 
         if (currentCommand.permissions.isNotEmpty()) {
             // check if the member has at least one of the required permissions to execute the command
