@@ -85,7 +85,7 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
                     STRING -> {
                         if (!current[0].startsWith("\"")) throw CommandArgumentException(commandOption, "\" expected at the start of the string argument", current.joinToString(" "))
 
-                        var currentIndex = 0
+                        var currentIndex = if (current[0] == "\"") 1 else 0
 
                         while (!current[currentIndex].endsWith("\"")) {
                             currentIndex += 1
