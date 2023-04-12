@@ -28,22 +28,19 @@ import net.dv8tion.jda.api.Permission
 interface Command {
 
     /**
-     * The parent of this command. If the parent is not null, it means
-     * that this is a sub command of a command, otherwise, this is the
-     * parent command.
+     * The parent command.
+     * Returns null if there is no parent.
      */
     var parent: Command?
 
     /**
-     * How deep this is from parent command. Value is zero if this is a
-     * parent command.
+     * The depth of the command from the parent.
+     * Returns zero if there are no parent.
      */
     val depth: Int
 
     /**
      * Used to get the registered command object that has been registered.
-     * Name must be unique since this is the identifier to get the registered command object.
-     * Format should be in lowercase.
      */
     val name: String
 
@@ -59,12 +56,12 @@ interface Command {
     val executor: Executor?
 
     /**
-     * List of command option of the command.
+     * List of command option.
      */
     val commandOptions: List<CommandOption>
 
     /**
-     * List of the permission of the command.
+     * List of the permission.
      */
     val permissions: List<Permission>
 
@@ -77,7 +74,7 @@ interface Command {
 
     /**
      * Event class of the command.
-     * This determines whether the command is SlashCommand or other type.
+     * This determines how the command will get executed.
      */
     val type: Class<*>
 
