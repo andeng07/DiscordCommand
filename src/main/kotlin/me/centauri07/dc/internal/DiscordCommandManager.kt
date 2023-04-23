@@ -30,6 +30,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.hooks.SubscribeEvent
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.build.*
+import net.dv8tion.jda.api.utils.messages.MessageCreateData
 import java.awt.Color
 
 /**
@@ -164,7 +165,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
         // reply using the response
         when (response.type) {
             STRING -> event.message.reply(response.stringResponse!!).mentionRepliedUser(false).queue()
-            MESSAGE -> event.message.reply(response.messageResponse!!).mentionRepliedUser(false).queue()
+            MESSAGE -> event.message.reply(MessageCreateData.fromMessage(response.messageResponse!!)).mentionRepliedUser(false).queue()
             EMBEDS -> event.message.replyEmbeds(response.embedsResponse!!).mentionRepliedUser(false).queue()
             MODAL, DEFFER -> throw UnsupportedOperationException("Response type is unsupported")
         }
@@ -207,7 +208,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
         // reply using the response
         when (response.type) {
             STRING -> event.reply(response.stringResponse!!).setEphemeral(response.ephemeral).queue()
-            MESSAGE -> event.reply(response.messageResponse!!).setEphemeral(response.ephemeral).queue()
+            MESSAGE -> event.reply(MessageCreateData.fromMessage(response.messageResponse!!)).setEphemeral(response.ephemeral).queue()
             EMBEDS -> event.replyEmbeds(response.embedsResponse!!).setEphemeral(response.ephemeral).queue()
             MODAL -> event.replyModal(response.modalResponse!!).queue()
             DEFFER -> event.deferReply().queue()

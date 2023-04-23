@@ -18,7 +18,7 @@ package me.centauri07.dc.api.response
 
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageEmbed
-import net.dv8tion.jda.api.interactions.components.Modal
+import net.dv8tion.jda.api.interactions.modals.Modal
 
 /**
  * @author Centauri07
