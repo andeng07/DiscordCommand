@@ -16,9 +16,9 @@
 
 package me.centauri07.dc.api.response
 
-import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.interactions.modals.Modal
+import net.dv8tion.jda.api.utils.messages.MessageCreateData
 
 /**
  * @author Centauri07
@@ -26,7 +26,7 @@ import net.dv8tion.jda.api.interactions.modals.Modal
 class Response private constructor(
     val type: Type,
     val stringResponse: String? = null,
-    val messageResponse: Message? = null,
+    val messageResponse: MessageCreateData? = null,
     val embedsResponse: List<MessageEmbed>? = null,
     val modalResponse: Modal? = null,
     var ephemeral: Boolean = false
@@ -39,7 +39,7 @@ class Response private constructor(
     companion object {
 
         fun of(string: String): Response = Response(Type.STRING, stringResponse = string)
-        fun of(message: Message): Response = Response(Type.MESSAGE, messageResponse = message)
+        fun of(message: MessageCreateData): Response = Response(Type.MESSAGE, messageResponse = message)
         fun of (embeds: List<MessageEmbed>): Response = Response(Type.EMBEDS, embedsResponse = embeds)
         fun of(vararg embeds: MessageEmbed): Response = of(embeds.toList())
         fun of(modal: Modal): Response = Response(Type.MODAL, modalResponse = modal)
