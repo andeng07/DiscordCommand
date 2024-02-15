@@ -21,61 +21,60 @@ import me.centauri07.dc.api.executor.Executor
 import net.dv8tion.jda.api.Permission
 
 /**
- * @author Centauri07
+ * Represents a registered command to be executed.
  *
- * This class represents the registered commands to get or weill be executed.
+ * @author Centauri07
  */
 interface Command {
 
     /**
-     * The parent command.
+     * Gets the parent command.
      * Returns null if there is no parent.
      */
     var parent: Command?
 
     /**
-     * The depth of the command from the parent.
-     * Returns zero if there are no parent.
+     * Gets the depth of the command from the parent.
+     * Returns zero if there is no parent.
      */
     val depth: Int
 
     /**
-     * Used to get the registered command object that has been registered.
+     * Gets the name of the command.
      */
     val name: String
 
     /**
-     * A brief explanation of the command's behaviour.
+     * Provides a brief explanation of the command's behavior.
      */
     val description: String
 
     /**
-     * Used to execute the command's behaviour by a pre-defined function
-     * when getting called.
+     * Gets the executor for the command's behavior.
+     * This is the function that will be called to execute the command's behavior.
      */
     val executor: Executor?
 
     /**
-     * List of command option.
+     * Gets the list of command options.
      */
     val commandOptions: List<CommandOption>
 
     /**
-     * List of the permission.
+     * Gets the list of permissions required to execute the command.
      */
     val permissions: List<Permission>
 
     /**
-     * List of sub command of the command.
-     * String -> Command, where the String represents the subcommand name
-     * and the command is the representation of the command object.
+     * Gets the map of subcommands for this command.
+     * The key (String) represents the subcommand name,
+     * and the value (Command) is the corresponding command object.
      */
     val subCommands: Map<String, Command>
 
     /**
-     * Event class of the command.
-     * This determines how the command will get executed.
+     * Gets the event class of the command.
+     * This determines how the command will be executed.
      */
     val type: Class<*>
-
 }
