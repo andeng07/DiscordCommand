@@ -27,7 +27,7 @@ import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.hooks.SubscribeEvent
+import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.build.*
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
@@ -36,10 +36,31 @@ import java.awt.Color
 /**
  * @author Centauri07
  */
-class DiscordCommandManager(private val jda: JDA, private val prefix: String): CommandManager {
+class DiscordCommandManager(private val jda: JDA, private val prefix: String) : CommandManager, ListenerAdapter() {
 
     init {
         jda.addEventListener(this)
+    }
+
+    override var onIncorrectUsage: ((Command) -> MessageCreateData)? = {
+        MessageCreateData.fromEmbeds(
+            EmbedBuilder()
+                .setColor(Color.RED)
+                .setDescription("Wrong command usage")
+                .addField("Correct Usage", "```${getUsage(it, StringBuilder(), 0)}```", false)
+                .build()
+        )
+    }
+
+    override var onIncorrectArgument: ((String?, String) -> MessageCreateData)? = { source, message ->
+        MessageCreateData.fromEmbeds(
+            EmbedBuilder()
+                .setColor(Color.RED)
+                .setDescription("There has been an error while parsing arguments")
+                .addField("Argument", source ?: "none", false)
+                .addField("Error", message, false)
+                .build()
+        )
     }
 
     private val commandMap: MutableMap<String, Command> = mutableMapOf()
@@ -49,17 +70,12 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
     override fun getCommands(): List<Command> = commandMap.values.toList()
 
     override fun registerCommand(command: Command) {
-
         if (commandMap.containsKey(command.name)) throw CommandAlreadyExistException("command with name ${command.name} has already been registered.")
-        
-        when (command.type) {
 
-            MessageReceivedEvent::class.java -> {
-                commandMap[command.name] = command
-            }
+        when (command.type) {
+            MessageReceivedEvent::class.java -> commandMap[command.name] = command
 
             SlashCommandInteractionEvent::class.java -> {
-
                 jda.guilds.forEach {
                     it.upsertCommand(getCommandData(command)).queue()
                 }
@@ -67,16 +83,11 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
                 commandMap[command.name] = command
             }
 
-            else -> {
-                throw IllegalArgumentException("Command's type ${command.type} is not supported!")
-            }
+            else -> throw IllegalArgumentException("Command's type ${command.type} is not supported!")
         }
-
     }
 
-    @SubscribeEvent
-    fun onMessageReceived(event: MessageReceivedEvent) {
-
+    override fun onMessageReceived(event: MessageReceivedEvent) {
         // validate if the message is coming from a real member
         if (event.author.isBot) return
         // validate if the message came from the guild or not by checking if the member object exists
@@ -99,19 +110,13 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
         var messageIndex = 0
 
         // getting the command to be executed
-        while(currentCommand.subCommands.isNotEmpty()) {
+        while (currentCommand.subCommands.isNotEmpty()) {
 
             messageIndex += 1
 
             try {
                 currentCommand = currentCommand.subCommands[messageIndices[messageIndex]] ?: run {
-                    event.message.replyEmbeds(
-                        EmbedBuilder()
-                            .setColor(Color.RED)
-                            .setDescription("Wrong command usage")
-                            .addField("Correct Usage", "```${getUsage(currentCommand, StringBuilder(), 0)}```", false)
-                            .build()
-                    ).mentionRepliedUser(false).queue()
+                    onIncorrectUsage?.let { event.message.reply(it(command)).queue() }
 
                     return
                 }
@@ -123,17 +128,11 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
 
         // send command usage if the command is null or the command's executor is null
         if (currentCommand.executor == null) {
-
-            event.message.replyEmbeds(
-                EmbedBuilder()
-                    .setColor(Color.RED)
-                    .setDescription("Wrong command usage")
-                    .addField("Correct Usage", "```${getUsage(currentCommand, StringBuilder(), 0)}```", false)
-                    .build()
-            ).queue()
+            onIncorrectUsage?.let {
+                event.message.reply(it(currentCommand))
+            }
 
             return
-
         }
 
         if (currentCommand.permissions.isNotEmpty()) {
@@ -145,14 +144,9 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
         val arguments = try {
             Argument.from(currentCommand.commandOptions, messageIndices.drop(messageIndex + 1), event.guild)
         } catch (e: CommandArgumentException) {
-            event.message.replyEmbeds(
-                EmbedBuilder()
-                    .setColor(Color.RED)
-                    .setDescription("There has been an error while parsing arguments")
-                    .addField("Argument", e.source ?: "none", false)
-                    .addField("Error", e.message!!, false)
-                    .build()
-            ).mentionRepliedUser(false).queue()
+            onIncorrectArgument?.let {
+                event.message.reply(it(e.source, e.message!!))
+            }
 
             return
         }
@@ -169,12 +163,9 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
             EMBEDS -> event.message.replyEmbeds(response.embedsResponse!!).mentionRepliedUser(false).queue()
             MODAL, DEFFER -> throw UnsupportedOperationException("Response type is unsupported")
         }
-
     }
 
-    @SubscribeEvent
-    fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
-
+    override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
         // get the command with the corresponding name
         val command = getCommand(event.name) ?: return
 
@@ -213,15 +204,14 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
             MODAL -> event.replyModal(response.modalResponse!!).queue()
             DEFFER -> event.deferReply().queue()
         }
-
     }
 
 
     private fun getCommandData(command: Command): SlashCommandData {
-
         val slashCommandData = Commands.slash(command.name, command.description)
 
-        if (command.permissions.isNotEmpty()) slashCommandData.defaultPermissions = DefaultMemberPermissions.enabledFor(command.permissions)
+        if (command.permissions.isNotEmpty()) slashCommandData.defaultPermissions =
+            DefaultMemberPermissions.enabledFor(command.permissions)
 
         if (command.subCommands.isEmpty()) {
             command.commandOptions.forEach {
@@ -229,36 +219,38 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
                     it.type, it.name, it.description, it.required
                 )
 
-                if (it.choices != null && it.choices.isNotEmpty()) option.addChoices(it.choices)
+                if (!it.choices.isNullOrEmpty()) option.addChoices(it.choices)
 
                 slashCommandData.addOptions(option)
             }
 
             return slashCommandData
         }
-        
+
         for (subCommand in command.subCommands.values) {
 
             if (subCommand.subCommands.isNotEmpty()) {
                 val subCommandGroupData = SubcommandGroupData(subCommand.name, subCommand.description)
 
-                subCommand.subCommands.forEach { (_, command) -> run {
+                subCommand.subCommands.forEach { (_, command) ->
+                    run {
 
-                    val subCommandData = SubcommandData(command.name, command.description)
+                        val subCommandData = SubcommandData(command.name, command.description)
 
-                    command.commandOptions.forEach {
-                        val option = OptionData(
-                            it.type, it.name, it.description, it.required
-                        )
+                        command.commandOptions.forEach {
+                            val option = OptionData(
+                                it.type, it.name, it.description, it.required
+                            )
 
-                        if (it.choices != null && it.choices.isNotEmpty()) option.addChoices(it.choices)
+                            if (!it.choices.isNullOrEmpty()) option.addChoices(it.choices)
 
-                        subCommandData.addOptions(option)
+                            subCommandData.addOptions(option)
+                        }
+
+                        subCommandGroupData.addSubcommands(subCommandData)
+
                     }
-
-                    subCommandGroupData.addSubcommands(subCommandData)
-
-                } }
+                }
 
                 slashCommandData.addSubcommandGroups(subCommandGroupData)
             } else {
@@ -270,7 +262,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
                         it.type, it.name, it.description, it.required
                     )
 
-                    if (it.choices != null && it.choices.isNotEmpty()) option.addChoices(it.choices)
+                    if (!it.choices.isNullOrEmpty()) option.addChoices(it.choices)
 
                     subCommandData.addOptions(option)
                 }
@@ -282,7 +274,6 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String): C
         }
 
         return slashCommandData
-        
     }
 
 }
