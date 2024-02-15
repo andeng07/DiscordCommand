@@ -65,7 +65,7 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
 
         fun from(options: List<CommandOption>, arguments: List<String>, guild: Guild): List<Argument> {
 
-            val convertedArguments: MutableList<Argument> = mutableListOf()
+            val parsedArguments: MutableList<Argument> = mutableListOf()
 
             var current = listOf(*arguments.toTypedArray())
 
@@ -136,10 +136,10 @@ data class Argument (val type: OptionType, val name: String, val value: Any) {
 
                 current = current.drop(toDrop)
 
-                convertedArguments.add(Argument(commandOption.type, commandOption.name, value))
+                parsedArguments.add(Argument(commandOption.type, commandOption.name, value))
             }
 
-            return convertedArguments
+            return parsedArguments
 
         }
     }
