@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "1.9.0"
     java
     `maven-publish`
 }
@@ -14,7 +14,9 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
 
-    implementation("net.dv8tion:JDA:5.0.0-beta.18")
+    implementation("net.dv8tion:JDA:5.0.0-beta.20")
+
+    testImplementation("net.dv8tion:JDA:5.0.0-beta.20")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
