@@ -52,7 +52,7 @@ class CommandBuilder(
     }
 
     fun addCommandOption(vararg commandOptions: CommandOption): CommandBuilder {
-        if (commandOptions.isEmpty()) throw IllegalArgumentException("cannot add an empty array")
+        if (commandOptions.isEmpty()) throw IllegalArgumentException("Cannot add an empty array.")
 
         if (subCommands?.isNotEmpty() == true) throw IllegalStateException("Command cannot have options and sub command at the same time.")
 
@@ -65,7 +65,7 @@ class CommandBuilder(
 
 
     fun addPermissions(vararg permissions: Permission): CommandBuilder {
-        if (permissions.isEmpty()) throw IllegalArgumentException("cannot add an empty array.")
+        if (permissions.isEmpty()) throw IllegalArgumentException("Cannot add an empty array.")
 
         if (this.permissions == null) commandOptions = mutableListOf()
 
@@ -76,14 +76,14 @@ class CommandBuilder(
 
 
     fun addSubCommands(vararg subCommands: Command): CommandBuilder {
-        if (subCommands.isEmpty()) throw IllegalArgumentException("cannot add an empty array")
+        if (subCommands.isEmpty()) throw IllegalArgumentException("Cannot add an empty array.")
 
         if (commandOptions?.isNotEmpty() == true) throw IllegalStateException("Command cannot have options and sub command at the same time.")
 
         if (this.subCommands == null) this.subCommands = mutableMapOf()
 
         subCommands.forEach {
-            if (it.type != type) throw IllegalArgumentException("subcommand's type must be the same type with its parent command.")
+            if (it.type != type) throw IllegalArgumentException("Subcommand's type must be the same type with its parent command.")
 
             this.subCommands!![it.name] = it
         }

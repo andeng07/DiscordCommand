@@ -17,32 +17,37 @@
 package me.centauri07.dc.api
 
 import me.centauri07.dc.api.command.Command
+import net.dv8tion.jda.api.utils.messages.MessageCreateData
 
 /**
+ * This interface represents a Command Manager responsible for managing registered commands.
+ *
  * @author Centauri07
  */
 interface CommandManager {
 
+    var onIncorrectUsage: ((Command) -> MessageCreateData)?
+
+    var onIncorrectArgument: ((String?, String) -> MessageCreateData)?
+
     /**
-     * This function is used to get the registered command via it's identifier from the command cache.
+     * Retrieves the registered command based on its identifier from the command cache.
      *
      * @param name the name of the command
-     *
-     * @return the registered command with the corresponding name.
+     * @return the registered command with the corresponding name, or null if not found
      */
     fun getCommand(name: String): Command?
 
     /**
-     * register a command to the command cache.
+     * Registers a command to the command cache.
      *
      * @param command the command to be registered
-     *
      * @throws CommandAlreadyExistException if the command with the corresponding name is already registered in the command cache
      */
     fun registerCommand(command: Command)
 
     /**
-     * Gets the list of registered commands
+     * Retrieves a list of registered commands.
      *
      * @return the list of registered commands
      */

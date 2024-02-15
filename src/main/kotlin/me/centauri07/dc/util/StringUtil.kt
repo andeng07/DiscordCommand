@@ -19,12 +19,10 @@ package me.centauri07.dc.util
 import me.centauri07.dc.api.command.Command
 import java.lang.StringBuilder
 
-
 /**
  * @author Centauri07
  */
 fun getUsage(command: Command, stringBuilder: StringBuilder, indent: Int): String {
-
     stringBuilder.append("\n" + "  ".repeat(indent) + command.name + " ")
 
     if (command.commandOptions.isNotEmpty()) {
@@ -38,5 +36,4 @@ fun getUsage(command: Command, stringBuilder: StringBuilder, indent: Int): Strin
     }
 
     return stringBuilder.toString()
-
 }
