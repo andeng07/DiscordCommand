@@ -28,7 +28,7 @@ interface CommandManager {
 
     var onIncorrectUsage: ((Command) -> MessageCreateData)?
 
-    var onIncorrectArgument: ((String?, String) -> MessageCreateData)?
+    var onIncorrectArgument: ((String) -> MessageCreateData)?
 
     /**
      * Retrieves the registered command based on its identifier from the command cache.

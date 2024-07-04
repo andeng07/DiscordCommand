@@ -21,4 +21,4 @@ import me.centauri07.dc.api.command.option.CommandOption
 /**
  * @author Centauri07
  */
-class CommandArgumentException(val option: CommandOption, message: String, val source: String? = null): Exception(message)
+class CommandArgumentException(commandOption: CommandOption, message: String, val source: String? = null): Exception(message)

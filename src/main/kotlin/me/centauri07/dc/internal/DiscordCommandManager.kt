@@ -17,17 +17,16 @@
 package me.centauri07.dc.internal
 
 import me.centauri07.dc.api.CommandManager
-import me.centauri07.dc.api.argument.Argument
+import me.centauri07.dc.api.argument.ArgumentParser
 import me.centauri07.dc.api.command.Command
 import me.centauri07.dc.api.exception.CommandAlreadyExistException
-import me.centauri07.dc.api.exception.CommandArgumentException
 import me.centauri07.dc.api.response.Response.Type.*
 import me.centauri07.dc.util.getUsage
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
-import net.dv8tion.jda.api.hooks.ListenerAdapter
+import net.dv8tion.jda.api.hooks.SubscribeEvent
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.build.*
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
@@ -36,7 +35,7 @@ import java.awt.Color
 /**
  * @author Centauri07
  */
-class DiscordCommandManager(private val jda: JDA, private val prefix: String) : CommandManager, ListenerAdapter() {
+class DiscordCommandManager(private val jda: JDA, private val prefix: String) : CommandManager {
 
     init {
         jda.addEventListener(this)
@@ -52,12 +51,11 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
         )
     }
 
-    override var onIncorrectArgument: ((String?, String) -> MessageCreateData)? = { source, message ->
+    override var onIncorrectArgument: ((String) -> MessageCreateData)? = { message ->
         MessageCreateData.fromEmbeds(
             EmbedBuilder()
                 .setColor(Color.RED)
                 .setDescription("There has been an error while parsing arguments")
-                .addField("Argument", source ?: "none", false)
                 .addField("Error", message, false)
                 .build()
         )
@@ -87,7 +85,8 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
         }
     }
 
-    override fun onMessageReceived(event: MessageReceivedEvent) {
+    @SubscribeEvent
+    fun onMessageReceived(event: MessageReceivedEvent) {
         // validate if the message is coming from a real member
         if (event.author.isBot) return
         // validate if the message came from the guild or not by checking if the member object exists
@@ -141,18 +140,20 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
         }
 
         // parse the argument and reply with error if encountered an exception
-        val arguments = try {
-            Argument.from(currentCommand.commandOptions, messageIndices.drop(messageIndex + 1), event.guild)
-        } catch (e: CommandArgumentException) {
+        val arguments = ArgumentParser.parseAll(event.guild, currentCommand.commandOptions, messageIndices.drop(messageIndex + 1))
+
+        if (arguments.isFailure) {
+            val error = arguments.exceptionOrNull()!!
+
             onIncorrectArgument?.let {
-                event.message.reply(it(e.source, e.message!!))
+                event.message.reply(it(error.message!!))
             }
 
             return
         }
 
         // execute command's executor and get the response
-        val response = currentCommand.executor!!.onCommand(member, arguments, event)
+        val response = currentCommand.executor!!.onCommand(member, arguments.getOrNull()!!, event)
 
         if (response.ephemeral) throw UnsupportedOperationException("Cannot send an ephemeral message")
 
@@ -165,7 +166,8 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
         }
     }
 
-    override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
+    @SubscribeEvent
+    fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
         // get the command with the corresponding name
         val command = getCommand(event.name) ?: return
 
@@ -194,7 +196,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
         }
 
         // execute the command's executor and get the response
-        val response = currentCommand.executor!!.onCommand(member, Argument.from(event.options), event)
+        val response = currentCommand.executor!!.onCommand(member, ArgumentParser.parseAll(event.options).getOrNull()!!, event)
 
         // reply using the response
         when (response.type) {
@@ -202,7 +204,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
             MESSAGE -> event.reply(response.messageResponse!!).setEphemeral(response.ephemeral).queue()
             EMBEDS -> event.replyEmbeds(response.embedsResponse!!).setEphemeral(response.ephemeral).queue()
             MODAL -> event.replyModal(response.modalResponse!!).queue()
-            DEFFER -> event.deferReply().queue()
+            DEFFER -> event.deferReply(response.ephemeral).queue()
         }
     }
 
