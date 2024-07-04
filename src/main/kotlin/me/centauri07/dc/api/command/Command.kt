@@ -31,7 +31,7 @@ interface Command {
      * Gets the parent command.
      * Returns null if there is no parent.
      */
-    var parent: Command?
+    val parent: Command?
 
     /**
      * Gets the depth of the command from the parent.

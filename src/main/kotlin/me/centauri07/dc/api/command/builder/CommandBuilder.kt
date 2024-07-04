@@ -74,7 +74,6 @@ class CommandBuilder(
         return this
     }
 
-
     fun addSubCommands(vararg subCommands: Command): CommandBuilder {
         if (subCommands.isEmpty()) throw IllegalArgumentException("Cannot add an empty array.")
 
@@ -91,7 +90,7 @@ class CommandBuilder(
         return this
     }
 
-    fun build(): Command = object: Command {
+    fun build(parent: Command? = null): Command = object: Command {
         override var parent: Command? = this@CommandBuilder.parent
         override val depth: Int = this@CommandBuilder.parent?.depth?.plus(1) ?: 0
         override val name: String = this@CommandBuilder.name
@@ -99,8 +98,7 @@ class CommandBuilder(
         override val executor: Executor? = this@CommandBuilder.executor
         override val commandOptions: List<CommandOption> = this@CommandBuilder.commandOptions ?: emptyList()
         override val permissions: List<Permission> = this@CommandBuilder.permissions ?: emptyList()
-        override val subCommands: Map<String, Command> = this@CommandBuilder.subCommands
-            ?.onEach { subCommand -> subCommand.value.parent = this } ?: emptyMap()
+        override val subCommands: Map<String, Command> = this@CommandBuilder.subCommands ?: emptyMap()
         override val type: Class<*> = this@CommandBuilder.type
     }
 
