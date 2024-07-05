@@ -53,6 +53,8 @@ interface ArgumentParser<T> {
                 val parser = parsers[it.type]
                     ?: return kotlin.Result.failure(NullPointerException("Argument parser for ${it.type.name} not found."))
 
+                if (toParse.isEmpty()) return kotlin.Result.failure(IllegalArgumentException("There are not enough arguments to parse."))
+
                 val result = parser.executeParse(guild, it, toParse)
 
                 if (result.result.isFailure) return kotlin.Result.failure(result.result.exceptionOrNull()!!)
