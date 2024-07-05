@@ -17,6 +17,7 @@
 package me.centauri07.dc.api
 
 import me.centauri07.dc.api.command.Command
+import me.centauri07.dc.api.command.builder.CommandBuilder
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
 
 /**
@@ -45,6 +46,28 @@ interface CommandManager {
      * @throws CommandAlreadyExistException if the command with the corresponding name is already registered in the command cache
      */
     fun registerCommand(command: Command)
+
+    /**
+     * Creates a new slash command with the specified name and description.
+     *
+     * @param name The name of the command. This must be a unique identifier for the command.
+     * @param description A brief description of the command's purpose and functionality.
+     * @param block A lambda with receiver that allows the caller to configure the command using a
+     *              [CommandBuilder] instance. This block will be executed to set up the command's
+     *              options, permissions, and other properties.
+     */
+    fun createSlashCommand(name: String, description: String, block: CommandBuilder.() -> Unit)
+
+    /**
+     * Creates a new slash command with the specified name and description.
+     *
+     * @param name The name of the command. This must be a unique identifier for the command.
+     * @param description A brief description of the command's purpose and functionality.
+     * @param block A lambda with receiver that allows the caller to configure the command using a
+     *              [CommandBuilder] instance. This block will be executed to set up the command's
+     *              options, permissions, and other properties.
+     */
+    fun createMessageCommand(name: String, description: String, block: CommandBuilder.() -> Unit)
 
     /**
      * Retrieves a list of registered commands.

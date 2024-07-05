@@ -19,6 +19,7 @@ package me.centauri07.dc.internal
 import me.centauri07.dc.api.CommandManager
 import me.centauri07.dc.api.argument.ArgumentParser
 import me.centauri07.dc.api.command.Command
+import me.centauri07.dc.api.command.builder.CommandBuilder
 import me.centauri07.dc.api.exception.CommandAlreadyExistException
 import me.centauri07.dc.api.response.Response.Type.*
 import me.centauri07.dc.util.getUsage
@@ -75,7 +76,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
 
             SlashCommandInteractionEvent::class.java -> {
                 jda.guilds.forEach {
-                    it.upsertCommand(getCommandData(command)).queue()
+                    it.upsertCommand(getCommandData(command).also { data -> println(data.toData().toPrettyString()) }).queue()
                 }
 
                 commandMap[command.name] = command
@@ -84,6 +85,12 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
             else -> throw IllegalArgumentException("Command's type ${command.type} is not supported!")
         }
     }
+
+    override fun createSlashCommand(name: String, description: String, block: CommandBuilder.() -> Unit) =
+        registerCommand(CommandBuilder.slash(name, description).apply(block).build())
+
+    override fun createMessageCommand(name: String, description: String, block: CommandBuilder.() -> Unit) =
+        registerCommand(CommandBuilder.message(name, description).apply(block).build())
 
     @SubscribeEvent
     fun onMessageReceived(event: MessageReceivedEvent) {

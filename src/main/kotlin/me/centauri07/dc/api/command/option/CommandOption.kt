@@ -16,6 +16,7 @@
 
 package me.centauri07.dc.api.command.option
 
+import me.centauri07.dc.api.command.builder.CommandDsl
 import net.dv8tion.jda.api.interactions.commands.Command
 import net.dv8tion.jda.api.interactions.commands.OptionType
 
@@ -29,5 +30,26 @@ data class CommandOption(
     val name: String,
     val description: String,
     val required: Boolean,
-    val choices: List<Command.Choice> = emptyList()
-)
+    val choices: List<Command.Choice>
+) {
+
+    @CommandDsl
+    class Builder(val type: OptionType, val name: String, val description: String) {
+        var required: Boolean = true
+        var choices : MutableList<Command.Choice> = mutableListOf()
+
+        fun choices(block: ChoiceBuilder.() -> Unit) = ChoiceBuilder().apply(block)
+
+        fun build(): CommandOption = CommandOption(type, name, description, required, choices)
+
+        @CommandDsl
+        inner class ChoiceBuilder {
+
+            operator fun Command.Choice.unaryPlus() = this@Builder.choices.add(this)
+
+        }
+
+    }
+
+
+}
