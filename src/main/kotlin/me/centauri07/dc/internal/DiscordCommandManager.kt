@@ -135,7 +135,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
         // send command usage if the command is null or the command's executor is null
         if (currentCommand.executor == null) {
             onIncorrectUsage?.let {
-                event.message.reply(it(currentCommand))
+                event.message.reply(it(currentCommand)).queue()
             }
 
             return
