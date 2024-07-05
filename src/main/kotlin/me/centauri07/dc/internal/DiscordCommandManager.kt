@@ -146,7 +146,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
             val error = arguments.exceptionOrNull()!!
 
             onIncorrectArgument?.let {
-                event.message.reply(it(error.message!!))
+                event.message.reply(it(error.message!!)).queue()
             }
 
             return
