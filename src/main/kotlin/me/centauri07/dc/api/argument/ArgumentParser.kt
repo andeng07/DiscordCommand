@@ -47,32 +47,22 @@ interface ArgumentParser<T> {
             options: List<CommandOption>,
             arguments: List<String>
         ): kotlin.Result<List<Argument>> {
-
-            println(options.size)
-
             val toParse = ArrayDeque(arguments)
 
-            return kotlin.Result.success(options.map {
-                println(
-                    buildString {
-                        toParse.forEach {
-                            str -> append("$str ")
-                        }
-                    }
-                )
-
+            val argumentsParsed = options.map {
                 val parser = parsers[it.type]
                     ?: return kotlin.Result.failure(NullPointerException("Argument parser for ${it.type.name} not found."))
 
                 val result = parser.executeParse(guild, it, toParse)
 
-                if (result.result.isFailure) {
-                    return kotlin.Result.failure(result.result.exceptionOrNull()!!)
-                }
+                if (result.result.isFailure) return kotlin.Result.failure(result.result.exceptionOrNull()!!)
 
                 Argument(it.type, it.name, result.result.getOrNull()!!)
-            })
+            }
 
+            if (toParse.isNotEmpty()) return kotlin.Result.failure(IllegalStateException("Arguments does not match the command options."))
+
+            return kotlin.Result.success(argumentsParsed)
         }
     }
 
