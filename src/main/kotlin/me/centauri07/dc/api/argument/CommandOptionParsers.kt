@@ -13,32 +13,19 @@ object StringArgumentParser : ArgumentParser<String> {
         commandOption: CommandOption,
         arguments: ArrayDeque<String>
     ): String? {
-
         if (!arguments[0].startsWith("\"")) {
             return arguments.removeFirst()
         }
 
-        val stringBuilder = StringBuilder()
-        var index = 0
-        var foundClosingQuote = false
+        val stringBuilder = StringBuilder(arguments.removeFirst())
 
-        for (i in arguments.indices) {
-            if (i > 0) stringBuilder.append(" ")
-            stringBuilder.append(arguments[i])
-            if (arguments[i].endsWith("\"")) {
-                index = i
-                foundClosingQuote = true
-                break
-            }
+        while (!arguments[0].endsWith("\"")) {
+            arguments.removeFirstOrNull()?.let {
+                stringBuilder.append(" $it")
+            } ?: return null
         }
 
-        if (!foundClosingQuote) return null
-
-        // TODO improve this, use repeat and ArrayDeque<String>#removeFirst() to build the string
-
-        repeat(index + 1) {
-            arguments.removeFirst()
-        }
+        stringBuilder.append(" ${arguments.removeFirst()}")
 
         return stringBuilder.removeSurrounding("\"").toString()
     }
@@ -98,7 +85,7 @@ object DiscordRoleArgumentParser : ArgumentParser<Role> {
         commandOption: CommandOption,
         arguments: ArrayDeque<String>
     ): Role? {
-        val toParse =arguments.removeFirst()
+        val toParse = arguments.removeFirst()
 
         val roleId: Long = try {
             if (toParse.startsWith("<@&") && toParse.endsWith(">")) {
@@ -128,8 +115,6 @@ object DiscordChannelArgumentParser : ArgumentParser<Channel> {
         } catch (e: NumberFormatException) {
             return null
         }
-
-        arguments.removeFirst()
 
         return guild.getGuildChannelById(roleId)
     }
