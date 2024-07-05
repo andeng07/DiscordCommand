@@ -221,7 +221,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
                     it.type, it.name, it.description, it.required
                 )
 
-                if (!it.choices.isNullOrEmpty()) option.addChoices(it.choices)
+                if (it.choices.isNotEmpty()) option.addChoices(it.choices)
 
                 slashCommandData.addOptions(option)
             }
@@ -244,7 +244,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
                                 it.type, it.name, it.description, it.required
                             )
 
-                            if (!it.choices.isNullOrEmpty()) option.addChoices(it.choices)
+                            if (it.choices.isNotEmpty()) option.addChoices(it.choices)
 
                             subCommandData.addOptions(option)
                         }
@@ -264,7 +264,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
                         it.type, it.name, it.description, it.required
                     )
 
-                    if (!it.choices.isNullOrEmpty()) option.addChoices(it.choices)
+                    if (it.choices.isNotEmpty()) option.addChoices(it.choices)
 
                     subCommandData.addOptions(option)
                 }

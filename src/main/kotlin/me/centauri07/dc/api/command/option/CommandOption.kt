@@ -29,5 +29,5 @@ data class CommandOption(
     val name: String,
     val description: String,
     val required: Boolean,
-    val choices: List<Command.Choice>? = null
+    val choices: List<Command.Choice> = emptyList()
 )
