@@ -61,9 +61,7 @@ class CommandBuilder(
     fun subCommand(name: String, description: String, block: CommandBuilder.() -> Unit) {
         val commandBuilder = CommandBuilder(name, description, type).apply(block)
 
-        (subCommands?.set(name, commandBuilder) ?: run { subCommands = mutableMapOf(name to commandBuilder) }).also {
-            println(subCommands?.size)
-        }
+        subCommands?.set(name, commandBuilder) ?: run { subCommands = mutableMapOf(name to commandBuilder) }
     }
 
     fun permissions(block: PermissionBuilder.() -> Unit) {

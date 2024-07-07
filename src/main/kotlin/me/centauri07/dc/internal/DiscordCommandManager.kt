@@ -76,7 +76,7 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
 
             SlashCommandInteractionEvent::class.java -> {
                 jda.guilds.forEach {
-                    it.upsertCommand(getCommandData(command).also { data -> println(data.toData().toPrettyString()) }).queue()
+                    it.upsertCommand(getCommandData(command)).queue()
                 }
 
                 commandMap[command.name] = command
