@@ -147,7 +147,10 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
         }
 
         // parse the argument and reply with error if encountered an exception
-        val arguments = ArgumentParser.parseAll(event.guild, currentCommand.commandOptions, messageIndices.drop(messageIndex + 1))
+        val arguments = ArgumentParser.parseAll(
+            event.guild,
+            currentCommand.commandOptions,
+            messageIndices.drop(messageIndex + 1).map { it.replace("\n", "") })
 
         if (arguments.isFailure) {
             val error = arguments.exceptionOrNull()!!
