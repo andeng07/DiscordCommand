@@ -39,7 +39,6 @@ class CommandBuilder(
 ) {
 
     var executor: Executor? = null
-    private var parent: Command? = null
     private var commandOptions: MutableList<CommandOption>? = null
     private var permissions: MutableList<Permission>? = null
     private var subCommands: MutableMap<String, CommandBuilder>? = null
@@ -77,7 +76,7 @@ class CommandBuilder(
 
     fun build(parent: Command? = null): Command = object : Command {
         override var parent: Command? = parent
-        override val depth: Int = this@CommandBuilder.parent?.depth?.plus(1) ?: 0
+        override val depth: Int = parent?.depth?.plus(1) ?: 0
         override val name: String = this@CommandBuilder.name
         override val description: String = this@CommandBuilder.description
         override val executor: Executor? = this@CommandBuilder.executor
