@@ -22,7 +22,7 @@ import java.lang.StringBuilder
 /**
  * @author Centauri07
  */
-fun getUsage(command: Command, stringBuilder: StringBuilder, indent: Int): String {
+fun getUsage(command: Command, stringBuilder: StringBuilder = StringBuilder(), indent: Int = 0): String {
     stringBuilder.append("\n" + "  ".repeat(indent) + command.name + " ")
 
     if (command.commandOptions.isNotEmpty()) {
