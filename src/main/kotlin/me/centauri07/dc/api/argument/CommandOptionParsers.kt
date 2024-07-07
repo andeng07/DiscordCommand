@@ -13,9 +13,11 @@ object StringArgumentParser : ArgumentParser<String> {
         commandOption: CommandOption,
         arguments: ArrayDeque<String>
     ): String? {
-        if (!arguments[0].startsWith("\"")) {
+        if (!arguments[0].startsWith("\""))
             return arguments.removeFirst()
-        }
+
+        if (arguments[0].length > 1 && arguments[0].endsWith("\""))
+            return arguments.removeFirst().removeSurrounding("\"")
 
         val stringBuilder = StringBuilder(arguments.removeFirst())
 
