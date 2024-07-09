@@ -20,10 +20,12 @@ interface ArgumentParser<T> {
             CHANNEL to DiscordChannelArgumentParser
         )
 
-        fun parseAll(options: List<OptionMapping>): kotlin.Result<List<Argument>> = kotlin.Result.success(options.map {
-            Argument(
+        // TODO implement validators for OptionMapping
+
+        fun parseAll(options: List<OptionMapping>): Result<List<Argument>> = Result.success(options.map {
+            val argument = Argument(
                 it.type, it.name, when (it.type) {
-                    UNKNOWN, SUB_COMMAND, SUB_COMMAND_GROUP -> return kotlin.Result.failure(
+                    UNKNOWN, SUB_COMMAND, SUB_COMMAND_GROUP -> return Result.failure(
                         IllegalArgumentException(
                             "Type not supported"
                         )
@@ -40,31 +42,48 @@ interface ArgumentParser<T> {
                     ATTACHMENT -> it.asAttachment
                 }
             )
+
+
+
+            argument
         })
 
         fun parseAll(
             guild: Guild,
             options: List<CommandOption>,
             arguments: List<String>
-        ): kotlin.Result<List<Argument>> {
+        ): Result<List<Argument>> {
             val toParse = ArrayDeque(arguments)
 
             val argumentsParsed = options.map {
                 val parser = parsers[it.type]
-                    ?: return kotlin.Result.failure(NullPointerException("Argument parser for ${it.type.name} not found."))
+                    ?: return Result.failure(
+                        CommandArgumentException(
+                            it,
+                            "Argument parser for ${it.type.name} not found. Please contact the developer."
+                        )
+                    )
 
-                if (toParse.isEmpty()) return kotlin.Result.failure(IllegalArgumentException("There are not enough arguments to parse."))
+                if (toParse.isEmpty()) return Result.failure(
+                    CommandArgumentException(it, "Insufficient arguments provided.")
+                )
 
                 val result = parser.executeParse(guild, it, toParse)
 
-                if (result.result.isFailure) return kotlin.Result.failure(result.result.exceptionOrNull()!!)
+                if (result.isFailure) return Result.failure(result.exceptionOrNull()!!)
 
-                Argument(it.type, it.name, result.result.getOrNull()!!)
+                result.getOrNull()!!
             }
 
-            if (toParse.isNotEmpty()) return kotlin.Result.failure(IllegalStateException("Arguments does not match the command options."))
+            if (toParse.isNotEmpty()) return Result.failure(
+                CommandArgumentException(
+                    options.last(),
+                    "Unable to parse the remaining arguments.",
+                    toParse.joinToString(" ")
+                )
+            )
 
-            return kotlin.Result.success(argumentsParsed)
+            return Result.success(argumentsParsed)
         }
     }
 
@@ -72,7 +91,7 @@ interface ArgumentParser<T> {
         guild: Guild,
         commandOption: CommandOption,
         arguments: ArrayDeque<String>
-    ): Result<T> {
+    ): Result<Argument> {
 
         if (arguments.isEmpty()) Result.failure<T>(
             CommandArgumentException(
@@ -81,32 +100,25 @@ interface ArgumentParser<T> {
             )
         )
 
-        val parseResult = parse(guild, commandOption, arguments) ?: return Result.failure(
-            CommandArgumentException(
-                commandOption,
-                "Fail to parse the argument.",
-                arguments.joinToString(" ")
+        val copy = arguments.toList()
+
+        val parseResult = parse(guild, commandOption, arguments)
+
+        parseResult.exceptionOrNull()?.let { return Result.failure(it) }
+
+        val argument = Argument(commandOption.type, commandOption.name, parseResult.getOrNull()!!)
+
+        commandOption.validators.firstOrNull { it.predicate(argument) }?.let {
+            return Result.failure(
+                CommandArgumentException(
+                    commandOption, it.message, copy.dropLast(arguments.size).joinToString(" ")
+                )
             )
-        )
-
-        return Result.success(parseResult, arguments)
-
-    }
-
-    fun parse(guild: Guild, commandOption: CommandOption, arguments: ArrayDeque<String>): T?
-
-    data class Result<T>(
-        val result: kotlin.Result<T>,
-        val remainingArguments: List<String>
-    ) {
-
-        companion object {
-            fun <T> success(value: T, remainingArguments: List<String>): Result<T> =
-                Result(kotlin.Result.success(value), remainingArguments)
-
-            fun <T> failure(exception: Throwable): Result<T> = Result(kotlin.Result.failure(exception), emptyList())
         }
 
+        return Result.success(argument)
     }
+
+    fun parse(guild: Guild, commandOption: CommandOption, arguments: ArrayDeque<String>): Result<T>
 
 }

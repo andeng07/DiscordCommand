@@ -18,6 +18,7 @@ package me.centauri07.dc.api
 
 import me.centauri07.dc.api.command.Command
 import me.centauri07.dc.api.command.builder.CommandBuilder
+import me.centauri07.dc.api.exception.CommandArgumentException
 import net.dv8tion.jda.api.utils.messages.MessageCreateData
 
 /**
@@ -29,7 +30,7 @@ interface CommandManager {
 
     var onIncorrectUsage: ((Command) -> MessageCreateData)?
 
-    var onIncorrectArgument: ((String) -> MessageCreateData)?
+    var onIncorrectArgument: ((CommandArgumentException) -> MessageCreateData)?
 
     /**
      * Retrieves the registered command based on its identifier from the command cache.

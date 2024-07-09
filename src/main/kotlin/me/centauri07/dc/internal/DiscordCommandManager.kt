@@ -21,6 +21,7 @@ import me.centauri07.dc.api.argument.ArgumentParser
 import me.centauri07.dc.api.command.Command
 import me.centauri07.dc.api.command.builder.CommandBuilder
 import me.centauri07.dc.api.exception.CommandAlreadyExistException
+import me.centauri07.dc.api.exception.CommandArgumentException
 import me.centauri07.dc.api.response.Response.Type.*
 import me.centauri07.dc.util.getUsage
 import net.dv8tion.jda.api.EmbedBuilder
@@ -52,12 +53,13 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
         )
     }
 
-    override var onIncorrectArgument: ((String) -> MessageCreateData)? = { message ->
+    override var onIncorrectArgument: ((CommandArgumentException) -> MessageCreateData)? = { exception ->
         MessageCreateData.fromEmbeds(
             EmbedBuilder()
                 .setColor(Color.RED)
-                .setDescription("There has been an error while parsing arguments")
-                .addField("Error", message, false)
+                .setDescription(exception.message)
+                .addField("Argument", exception.commandOption.name, false)
+                .addField("Source", exception.source ?: "Not provided", false)
                 .build()
         )
     }
@@ -150,13 +152,14 @@ class DiscordCommandManager(private val jda: JDA, private val prefix: String) : 
         val arguments = ArgumentParser.parseAll(
             event.guild,
             currentCommand.commandOptions,
-            messageIndices.drop(messageIndex + 1).map { it.replace("\n", "") })
+            messageIndices.drop(messageIndex + 1).map { it.replace("\n", "") }
+        )
 
         if (arguments.isFailure) {
             val error = arguments.exceptionOrNull()!!
 
             onIncorrectArgument?.let {
-                event.message.reply(it(error.message!!)).queue()
+                event.message.reply(it(error as CommandArgumentException)).queue()
             }
 
             return
